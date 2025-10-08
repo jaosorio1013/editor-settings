@@ -1,44 +1,194 @@
 {
-    "workbench.colorTheme": "Tokyo Storm Gogh",
-    "editor.minimap.enabled": false,
-    "editor.fontSize": 20,
-    "workbench.editor.showTabs": "none",
-    "breadcrumbs.enabled": false,
-    "terminal.integrated.fontSize": 20,
-    "editor.fontVariations": false,
-    "editor.fontFamily": "JetBrains Mono",
-    "terminal.integrated.fontFamily": "IosevkaTerm Nerd Font Mono",
-    "terminal.integrated.fontWeight": "normal",
-    "redhat.telemetry.enabled": false,
-    "git.autoRepositoryDetection": false,
-    "workbench.sideBar.location": "right",
-    "workbench.activityBar.location": "hidden",
-    "workbench.layoutControl.enabled": false,
-    "security.workspace.trust.untrustedFiles": "open",
-    "window.customTitleBarVisibility": "windowed",
-    "dart.flutterHotReloadOnSave": "allIfDirty",
-    "git.confirmSync": false,
+    /**
+    * Macros
+    **/
     "macros.list": {
         "commentDown": [
-            "editor.action.addCommentLine",
+            "editor.action.commentLine",
             "cursorDown"
-        ]
+        ],
+    //     {
+    //     "command": "multiCommand.cerrarPaneles",
+    //     "sequence": [
+    //         "workbench.action.closePanel",          // Cierra el Panel Inferior (Terminal)
+    //         "workbench.action.closeSidebar",         // Cierra la Barra Lateral (Explorador)
+    //         "workbench.action.focusActiveEditorGroup" // Asegura el foco en el Editor
+    //     ]
+    // }
     },
-    "pgsql.serverGroups": [
-        {
-            "name": "Servers",
-            "id": "B11B53FC-C6B5-4536-8C7B-3B0212B2AE48",
-            "isDefault": true
+
+    /**
+    * Better Defaults
+    **/
+    "editor.copyWithSyntaxHighlighting": true,
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.emptySelectionClipboard": false,
+    "workbench.editor.enablePreview": false,
+    "window.newWindowDimensions": "inherit",
+    "editor.multiCursorModifier": "ctrlCmd",
+    "files.trimTrailingWhitespace": true,
+    "diffEditor.renderSideBySide": false,
+    "editor.snippetSuggestions": "top",
+    "editor.detectIndentation": false,
+    "window.nativeFullScreen": false,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "workbench.sideBar.location": "right",
+    "workbench.editor.showTabs": "none",
+    "editor.minimap.enabled": false,
+    "focus.opacity": "0.5",
+    "focus.highlightRange": "fixed",
+    // "editor.lineNumbers": "off",
+    /**
+    * Silence The Noise
+    */
+    "breadcrumbs.enabled": false,
+    "scm.diffDecorations": "none",
+    "editor.hover.enabled": false,
+    "editor.matchBrackets": "never",
+    "workbench.tips.enabled": false,
+    "editor.colorDecorators": false,
+    "git.decorations.enabled": false,
+    "workbench.startupEditor": "none",
+    "editor.lightbulb.enabled": "off",
+    "editor.selectionHighlight": false,
+    "editor.overviewRulerBorder": false,
+    "editor.renderLineHighlight": "none",
+    "editor.occurrencesHighlight": "off",
+    "problems.decorations.enabled": false,
+    "editor.renderControlCharacters": false,
+    "editor.hideCursorInOverviewRuler": true,
+    "editor.gotoLocation.multipleReferences": "goto",
+    "editor.gotoLocation.multipleDefinitions": "goto",
+    "editor.gotoLocation.multipleDeclarations": "goto",
+    "workbench.editor.enablePreviewFromQuickOpen": false,
+    "editor.gotoLocation.multipleImplementations": "goto",
+    "editor.gotoLocation.multipleTypeDefinitions": "goto",
+    "editor.fontFamily": "Operator Mono, Dank mono, Menlo, Monaco, 'Courier New', monospace",
+    "editor.fontSize": 25,
+    "editor.lineHeight": 50,
+    "editor.suggestFontSize": 18,
+    "editor.suggestLineHeight": 28,
+    "terminal.integrated.fontSize": 20,
+    "terminal.integrated.lineHeight": 1.5,
+    /**
+    * Find
+    **/
+    "search.useIgnoreFiles": false,
+    "search.exclude": {
+        // Hide everything in /vendor, except the "laravel" and "livewire" folder.
+        "**/vendor/{[^l],?[^ai]}*": true,
+        // Hide everything in /public, except "index.php"
+        "**/public/{[^i],?[^n]}*": true,
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/_ide_helper.php": true,
+        "**/composer.lock": true,
+        "**/package-lock.json": true,
+        "storage": true,
+        ".phpunit.result.cache": true
+    },
+    /**
+    * Code
+    **/
+    // Include "-" in word selection.
+    "editor.wordSeparators": "`~!@#%^&*()=+[{]}\\|;:'\",.<>/?",
+    "emmet.includeLanguages": {
+        "blade": "html",
+        "vue-html": "html",
+        "vue": "html"
+    },
+    "files.associations": {
+        ".php_cs": "php",
+        ".php_cs.dist": "php"
+    },
+    /**
+    * PHP
+    **/
+    "php.suggest.basic": false,
+    /**
+    * PHP CS Fixer
+    **/
+    "[php]": {
+        "editor.defaultFormatter": "junstyle.php-cs-fixer"
+    },
+    "php-cs-fixer.onsave": false,
+    "php-cs-fixer.showOutput": false,
+    "php-cs-fixer.autoFixByBracket": false,
+    "php-cs-fixer.rules": "@PSR2",
+    /**
+    * Prettier
+    **/
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "prettier.requireConfig": true,
+    "prettier.useEditorConfig": false,
+    /**
+    * Window Settings
+    **/
+    // "window.nativeTabs": true,
+    "window.titleBarStyle": "native",
+    "customizeUI.titleBar": "inline",
+    "security.workspace.trust.untrustedFiles": "open",
+    "git.enableSmartCommit": true,
+    "editor.accessibilitySupport": "off",
+    "php-cs-fixer.executablePath": "${extensionPath}/php-cs-fixer.phar",
+    "php-cs-fixer.lastDownload": 1672667618066,
+    "git.confirmSync": false,
+    "git.autofetch": true,
+    "terminal.integrated.env.osx": {
+        "FIG_NEW_SESSION": "1"
+    },
+    "explorer.confirmDelete": false,
+    "editor.unicodeHighlight.invisibleCharacters": false,
+    "editor.guides.indentation": false,
+    "workbench.editor.empty.hint": "hidden",
+    "github.copilot.chat.customInstructionsInSystemMessage": false,
+    "redhat.telemetry.enabled": true,
+    "workbench.activityBar.location": "default",
+    "[dockercompose]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.autoIndent": "advanced",
+        "editor.quickSuggestions": {
+            "other": true,
+            "comments": false,
+            "strings": true
         },
-        {
-            "id": "CBA817FD-BFD4-4688-9B36-1B9A4FA9FC45",
-            "name": "DP - BCA",
-            "description": ""
-        },
-        {
-            "id": "734A8995-7A37-4941-806F-EB6DFDB35667",
-            "name": "ONEST",
-            "description": ""
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "[github-actions-workflow]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "kilo-code.allowedCommands": [
+        "git log",
+        "git diff",
+        "git show",
+        "mkdir",
+        "md",
+        "django-admin",
+        "pip",
+        "composer",
+        "php artisan",
+        "php vendor/bin/pest tests/Feature/ProductTest.php --verbose",
+        "php",
+        "python",
+        "cd",
+        "php artisan serve",
+        "pyinstaller"
+    ],
+    "kilo-code.deniedCommands": [],
+    "chat.commandCenter.enabled": false,
+    "window.commandCenter": false,
+    "workbench.layoutControl.enabled": false,
+    "workbench.colorTheme": "Catppuccin Alt Mocha",
+    "workbench.statusBar.visible": false,
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "terminal.integrated.profiles.windows": {
+        "Git Bash": {
+            "source": "Git Bash"
         }
-    ]
+    },
 }
