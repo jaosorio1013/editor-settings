@@ -1,5 +1,64 @@
 // Place your key bindings in this file to override the defaults
 [
+    /**
+      * Toggle Font Size
+      **/
+      {
+          "key": "ctrl+k ctrl+k",
+          "command": "toggle",
+          "when": "editorTextFocus",
+          "args": {
+              "id": "fontSize",
+              "value": [
+                  {
+                      "editor.fontSize": 25,
+                      "editor.lineHeight": 50,
+                  },
+                  {
+                      "editor.fontSize": 18,
+                      "editor.lineHeight": 0,
+                  }
+              ]
+          }
+      },
+
+      /**
+      * Toggle Activity bar
+      **/
+      {
+        "key": "ctrl+b",
+        "command": "toggle",
+        "args": {
+            "id": "activityBar",
+            "value": [
+                {
+                    "workbench.activityBar.location": "hidden"
+                },
+                {
+                    "workbench.activityBar.location": "default"
+                }
+            ]
+        }
+    },
+
+      /**
+      * Line Manipulation
+      **/
+      {
+          "key": "ctrl+j",
+          "command": "editor.action.joinLines",
+          "when": "editorTextFocus"
+      },
+
+    /** Other **/
+    {
+        "key": "alt+f10",
+       "command": "workbench.action.toggleStatusbarVisibility"
+     },
+     {
+        "key": "alt+f9",
+       "command": "toggle.workbench.editor.editorActionsLocation"
+     },
     {
         "key": "ctrl+shift+alt+l",
         "command": "workbench.action.chat.newChat",
@@ -328,3 +387,633 @@
         "command": "workbench.action.quickOpen"
     }
 ]
+
+// // Place your key bindings in this file to override the defaults
+// [
+//     // New configuration
+//     {
+//       "key": "alt+shift+1",
+//       "command": "workbench.action.toggleActivityBarVisibility"
+//     },
+//     {
+//       "key": "alt+1",
+//       "command": "workbench.action.focusSideBar"
+//     },
+//     {
+//       "key": "alt+1",
+//       "command": "workbench.action.toggleSidebarVisibility",
+//       "when": "sideBarFocus"
+//     },
+//     {
+//       "key": "enter",
+//       "command": "list.select",
+//       "when": "sideBarFocus"
+//     },
+//     {
+//       "key": "escape",
+//       "command": "workbench.action.focusActiveEditorGroup",
+//       "when": "!editorTextFocus"
+//     },
+//     {
+//       "key": "ctrl+n",
+//       "command": "explorer.newFile",
+//       "when": "explorerViewletFocus"
+//     },
+//     {
+//       "key": "ctrl+alt+shift+p",
+//       "command": "explorer.newFolder",
+//       "when": "explorerViewletFocus"
+//     },
+//     {
+//       "key": "alt+f10",
+//       "command": "workbench.action.toggleStatusbarVisibility"
+//     },
+//     {
+//       "key": "alt+F12",
+//       "command": "workbench.action.terminal.toggleTerminal"
+//     },
+//     {
+//       "key": "ctrl+d",
+//       "command": "editor.action.copyLinesDownAction",
+//       "when": "editorTextFocus && !editorReadonly"
+//     },
+//   //   {
+//   //     "key": "cmd+b",
+//   //     "command": "-workbench.action.toggleSidebarVisibility"
+//   //   },
+//   //   {
+//   //     "key": "cmd+b",
+//   //     "command": "editor.action.revealDefinition",
+//   //     "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+//   //   },
+//     {
+//       "key": "shift+cmd+t",
+//       "command": "extension.jumpToTest",
+//       "when": "editorTextFocus"
+//     },
+//     {
+//       "key": "shift+alt+down",
+//       "command": "editor.action.moveLinesDownAction",
+//       "when": "editorTextFocus && !editorReadonly"
+//     },
+//     {
+//       "key": "shift+alt+up",
+//       "command": "editor.action.moveLinesUpAction",
+//       "when": "editorTextFocus && !editorReadonly"
+//     },
+//     {
+//       "key": "alt+up",
+//       "command": "editor.action.smartSelect.expand",
+//       "when": "editorTextFocus"
+//     },
+//     {
+//       "key": "alt+down",
+//       "command": "editor.action.smartSelect.shrink",
+//       "when": "editorTextFocus"
+//     },
+//     {
+//       "key": "ctrl+shift+t",
+//       "command": "editor.action.refactor",
+//       "when": "editorHasCodeActionsProvider && textInputFocus && !editorReadonly"
+//     },
+//     {
+//       "key": "ctrl+shift+e",
+//       "command": "editor.action.codeAction",
+//       "args": {
+//         "kind": "refactor.extract.function",
+//       }
+//     },
+//     // Original
+//     {
+//       "key": "ctrl+numpad_divide",
+//       //   "command": "editor.action.commentLine",
+//       "command": "commentLineDown.commentLineAndCursorDown",
+//       "when": "editorTextFocus && !editorReadonly"
+//     },
+//     {
+//       "key": "ctrl+shift+numpad_divide",
+//       "command": "editor.action.blockComment",
+//       "when": "editorTextFocus && !editorReadonly"
+//     },
+//     {
+//       "key": "alt+[period]",
+//       "command": "editor.toggleFold",
+//       "when": "editorTextFocus && foldingEnabled"
+//     },
+//     {
+//       "key": "alt+backspace",
+//       "command": "editor.action.deleteLines",
+//       "when": "textInputFocus && !editorReadonly"
+//     },
+//     {
+//       "key": "alt+[enter]",
+//       "command": "namespaceResolver.import",
+//       "when": "editorTextFocus && !editorReadonly"
+//     },
+//     {
+//       "key": "ctrl+alt+[enter]",
+//       "command": "namespaceResolver.sort",
+//       "when": "editorTextFocus && !editorReadonly"
+//     },
+//     // Disabled
+//     // {
+//     //   "key": "ctrl+alt+shift+m",
+//     //   "command": "notifications.clearAll"
+//     // },
+//     // {
+//     //   "key": "cmd+e",
+//     //   "command": "workbench.action.showAllEditorsByMostRecentlyUsed"
+//     // },
+//     // {
+//     //   "key": "cmd+[",
+//     //   "command": "workbench.action.navigateBack",
+//     //   "when": "canNavigateBack"
+//     // },
+//     // {
+//     //   "key": "cmd+]",
+//     //   "command": "workbench.action.navigateForward",
+//     //   "when": "canNavigateForward"
+//     // },
+//     // Removed
+//     {
+//       "key": "ctrl+shift+o",
+//       "command": "-editor.action.accessibleViewGoToSymbol",
+//       "when": "accessibilityHelpIsShown && accessibleViewGoToSymbolSupported || accessibleViewGoToSymbolSupported && accessibleViewIsShown"
+//     },
+//     {
+//       "key": "ctrl+r",
+//       "command": "-workbench.action.reloadWindow",
+//       "when": "isDevelopment && !isAuxiliaryWindowFocusedContext"
+//     },
+//     {
+//       "key": "ctrl+r",
+//       "command": "-workbench.action.openRecent"
+//     },
+//     {
+//       "key": "ctrl+r",
+//       "command": "-workbench.action.terminal.runRecentCommand",
+//       "when": "accessibilityModeEnabled && terminalFocus && terminalHasBeenCreated || accessibilityModeEnabled && terminalFocus && terminalProcessSupported || accessibilityModeEnabled && accessibleViewIsShown && terminalHasBeenCreated && accessibleViewCurrentProviderId == 'terminal' || accessibilityModeEnabled && accessibleViewIsShown && terminalProcessSupported && accessibleViewCurrentProviderId == 'terminal'"
+//     },
+//     {
+//       "key": "ctrl+r",
+//       "command": "-workbench.action.quickOpenNavigateNextInRecentFilesPicker",
+//       "when": "inQuickOpen && inRecentFilesPicker"
+//     },
+//     {
+//       "key": "ctrl+shift+o",
+//       "command": "-workbench.action.gotoSymbol",
+//       "when": "!accessibilityHelpIsShown && !accessibleViewIsShown"
+//     },
+//     {
+//       "key": "alt+w",
+//       "command": "-toggleFindWholeWord",
+//       "when": "editorFocus"
+//     },
+//     {
+//       "key": "alt+f4",
+//       "command": "-workbench.action.closeWindow"
+//     },
+//     {
+//       "key": "alt+w",
+//       "command": "workbench.action.closeActiveEditor"
+//     },
+//     {
+//       "key": "ctrl+f4",
+//       "command": "-workbench.action.closeActiveEditor"
+//     },
+//     {
+//       "key": "alt+p",
+//       "command": "workbench.action.quickOpen"
+//     },
+//     {
+//       "key": "alt+e",
+//       "command": "workbench.files.action.focusOpenEditorsView",
+//       "when": "workbench.explorer.openEditorsView.active"
+//     },
+//     {
+//       "key": "ctrl+k e",
+//       "command": "-workbench.files.action.focusOpenEditorsView",
+//       "when": "workbench.explorer.openEditorsView.active"
+//     },
+//     {
+//       "key": "alt+r",
+//       "command": "workbench.action.gotoSymbol",
+//       "when": "!accessibilityHelpIsShown && !accessibleViewIsShown"
+//     },
+//     {
+//       "key": "alt+x",
+//       "command": "workbench.view.extensions",
+//       "when": "viewContainer.workbench.view.extensions.enabled"
+//     },
+//     {
+//       "key": "alt+2",
+//       "command": "github.cweijan.mysql.focus"
+//     },
+//     {
+//       "key": "alt+g",
+//       "command": "workbench.view.scm",
+//       "when": "workbench.scm.active"
+//     },
+
+//       /**
+//       * Pannels
+//       **/
+//       {
+//           "key": "alt+t",
+//           "command": "workbench.view.extension.thunder-client"
+//       },
+
+//       /**
+//       * IntelliSense
+//       **/
+//       {
+//           "key": "ctrl+shift+r",
+//           "command": "workbench.action.showAllSymbols"
+//       },
+//       {
+//           "key": "ctrl+r",
+//           "command": "workbench.action.gotoSymbol",
+//           "when": "!accessibilityHelpIsShown && !accessibleViewIsShown"
+//       },
+//       {
+//           "key": "alt+b",
+//           "command": "editor.action.goToDeclaration",
+//           "when": "editorTextFocus"
+//       },
+
+//       /**
+//       * Project Switching
+//       **/
+//       {
+//           "key": "ctrl+;",
+//           "command": "workbench.action.switchWindow",
+//           "when": "! config.simple-project-switcher.present"
+//       },
+
+//       /**
+//       * Open DevTools
+//       **/
+//       {
+//           "key": "alt+ctrl+i",
+//           "command": "workbench.action.toggleDevTools"
+//       },
+
+//       /**
+//       * Hide Toaster Notifications
+//       **/
+//       {
+//           "key": "escape",
+//           "command": "notifications.hideToasts",
+//           "when": "notificationToastsVisible"
+//       },
+//       {
+//           "key": "alt+l",
+//           "command": "workbench.action.gotoLine"
+//     },
+//     {
+//         "key": "alt+g",
+//         "command": "editor.action.addSelectionToNextFindMatch",
+//         "when": "editorFocus"
+//     },
+//     {
+//         "key": "ctrl+shift+alt+j",
+//         "command": "editor.action.selectHighlights",
+//         "when": "editorFocus"
+//     },
+//   ]
+
+
+// // // Place your key bindings in this file to override the defaults
+// // [
+// //     // New configuration
+// //     {
+// //       "key": "alt+shift+1",
+// //       "command": "workbench.action.toggleActivityBarVisibility"
+// //     },
+// //     {
+// //       "key": "alt+1",
+// //       "command": "workbench.action.focusSideBar"
+// //     },
+// //     {
+// //       "key": "alt+1",
+// //       "command": "workbench.action.toggleSidebarVisibility",
+// //       "when": "sideBarFocus"
+// //     },
+// //     {
+// //       "key": "enter",
+// //       "command": "list.select",
+// //       "when": "sideBarFocus"
+// //     },
+// //     {
+// //       "key": "escape",
+// //       "command": "workbench.action.focusActiveEditorGroup",
+// //       "when": "!editorTextFocus"
+// //     },
+// //     {
+// //       "key": "ctrl+n",
+// //       "command": "explorer.newFile",
+// //       "when": "explorerViewletFocus"
+// //     },
+// //     {
+// //       "key": "ctrl+alt+shift+p",
+// //       "command": "explorer.newFolder",
+// //       "when": "explorerViewletFocus"
+// //     },
+// //     {
+// //       "key": "alt+f10",
+// //       "command": "workbench.action.toggleStatusbarVisibility"
+// //     },
+// //     {
+// //       "key": "alt+F12",
+// //       "command": "workbench.action.terminal.toggleTerminal"
+// //     },
+// //     {
+// //       "key": "ctrl+d",
+// //       "command": "editor.action.copyLinesDownAction",
+// //       "when": "editorTextFocus && !editorReadonly"
+// //     },
+// //   //   {
+// //   //     "key": "cmd+b",
+// //   //     "command": "-workbench.action.toggleSidebarVisibility"
+// //   //   },
+// //   //   {
+// //   //     "key": "cmd+b",
+// //   //     "command": "editor.action.revealDefinition",
+// //   //     "when": "editorHasDefinitionProvider && editorTextFocus && !isInEmbeddedEditor"
+// //   //   },
+// //     {
+// //       "key": "shift+cmd+t",
+// //       "command": "extension.jumpToTest",
+// //       "when": "editorTextFocus"
+// //     },
+// //     {
+// //       "key": "shift+alt+down",
+// //       "command": "editor.action.moveLinesDownAction",
+// //       "when": "editorTextFocus && !editorReadonly"
+// //     },
+// //     {
+// //       "key": "shift+alt+up",
+// //       "command": "editor.action.moveLinesUpAction",
+// //       "when": "editorTextFocus && !editorReadonly"
+// //     },
+// //     {
+// //       "key": "alt+up",
+// //       "command": "editor.action.smartSelect.expand",
+// //       "when": "editorTextFocus"
+// //     },
+// //     {
+// //       "key": "alt+down",
+// //       "command": "editor.action.smartSelect.shrink",
+// //       "when": "editorTextFocus"
+// //     },
+// //     {
+// //       "key": "ctrl+shift+t",
+// //       "command": "editor.action.refactor",
+// //       "when": "editorHasCodeActionsProvider && textInputFocus && !editorReadonly"
+// //     },
+// //     {
+// //       "key": "ctrl+shift+e",
+// //       "command": "editor.action.codeAction",
+// //       "args": {
+// //         "kind": "refactor.extract.function",
+// //       }
+// //     },
+// //     // Original
+// //     {
+// //       "key": "ctrl+numpad_divide",
+// //       //   "command": "editor.action.commentLine",
+// //       "command": "commentLineDown.commentLineAndCursorDown",
+// //       "when": "editorTextFocus && !editorReadonly"
+// //     },
+// //     {
+// //       "key": "ctrl+shift+numpad_divide",
+// //       "command": "editor.action.blockComment",
+// //       "when": "editorTextFocus && !editorReadonly"
+// //     },
+// //     // {
+// //     //   "key": "alt+[period]",
+// //     //   "command": "editor.toggleFold",
+// //     //   "when": "editorTextFocus && foldingEnabled"
+// //     // },
+// //     {
+// //       "key": "alt+backspace",
+// //       "command": "editor.action.deleteLines",
+// //       "when": "textInputFocus && !editorReadonly"
+// //     },
+// //     {
+// //       "key": "alt+[enter]",
+// //       "command": "namespaceResolver.import",
+// //       "when": "editorTextFocus && !editorReadonly"
+// //     },
+// //     {
+// //       "key": "ctrl+alt+[enter]",
+// //       "command": "namespaceResolver.sort",
+// //       "when": "editorTextFocus && !editorReadonly"
+// //     },
+// //     // Disabled
+// //     // {
+// //     //   "key": "ctrl+alt+shift+m",
+// //     //   "command": "notifications.clearAll"
+// //     // },
+// //     // {
+// //     //   "key": "cmd+e",
+// //     //   "command": "workbench.action.showAllEditorsByMostRecentlyUsed"
+// //     // },
+// //     // {
+// //     //   "key": "cmd+[",
+// //     //   "command": "workbench.action.navigateBack",
+// //     //   "when": "canNavigateBack"
+// //     // },
+// //     // {
+// //     //   "key": "cmd+]",
+// //     //   "command": "workbench.action.navigateForward",
+// //     //   "when": "canNavigateForward"
+// //     // },
+// //     // Removed
+// //     {
+// //       "key": "ctrl+shift+o",
+// //       "command": "-editor.action.accessibleViewGoToSymbol",
+// //       "when": "accessibilityHelpIsShown && accessibleViewGoToSymbolSupported || accessibleViewGoToSymbolSupported && accessibleViewIsShown"
+// //     },
+// //     {
+// //       "key": "ctrl+r",
+// //       "command": "-workbench.action.reloadWindow",
+// //       "when": "isDevelopment && !isAuxiliaryWindowFocusedContext"
+// //     },
+// //     {
+// //       "key": "ctrl+r",
+// //       "command": "-workbench.action.openRecent"
+// //     },
+// //     {
+// //       "key": "ctrl+r",
+// //       "command": "-workbench.action.terminal.runRecentCommand",
+// //       "when": "accessibilityModeEnabled && terminalFocus && terminalHasBeenCreated || accessibilityModeEnabled && terminalFocus && terminalProcessSupported || accessibilityModeEnabled && accessibleViewIsShown && terminalHasBeenCreated && accessibleViewCurrentProviderId == 'terminal' || accessibilityModeEnabled && accessibleViewIsShown && terminalProcessSupported && accessibleViewCurrentProviderId == 'terminal'"
+// //     },
+// //     {
+// //       "key": "ctrl+r",
+// //       "command": "-workbench.action.quickOpenNavigateNextInRecentFilesPicker",
+// //       "when": "inQuickOpen && inRecentFilesPicker"
+// //     },
+// //     {
+// //       "key": "ctrl+shift+o",
+// //       "command": "-workbench.action.gotoSymbol",
+// //       "when": "!accessibilityHelpIsShown && !accessibleViewIsShown"
+// //     },
+// //     {
+// //       "key": "alt+w",
+// //       "command": "-toggleFindWholeWord",
+// //       "when": "editorFocus"
+// //     },
+// //     {
+// //       "key": "alt+f4",
+// //       "command": "-workbench.action.closeWindow"
+// //     },
+// //     {
+// //       "key": "alt+w",
+// //       "command": "workbench.action.closeActiveEditor"
+// //     },
+// //     {
+// //       "key": "ctrl+f4",
+// //       "command": "-workbench.action.closeActiveEditor"
+// //     },
+// //     {
+// //       "key": "alt+p",
+// //       "command": "workbench.action.quickOpen"
+// //     },
+// //     {
+// //       "key": "alt+e",
+// //       "command": "workbench.files.action.focusOpenEditorsView",
+// //       "when": "workbench.explorer.openEditorsView.active"
+// //     },
+// //     {
+// //       "key": "ctrl+k e",
+// //       "command": "-workbench.files.action.focusOpenEditorsView",
+// //       "when": "workbench.explorer.openEditorsView.active"
+// //     },
+// //     {
+// //       "key": "alt+r",
+// //       "command": "workbench.action.gotoSymbol",
+// //       "when": "!accessibilityHelpIsShown && !accessibleViewIsShown"
+// //     },
+// //     {
+// //       "key": "alt+x",
+// //       "command": "workbench.view.extensions",
+// //       "when": "viewContainer.workbench.view.extensions.enabled"
+// //     },
+// //     {
+// //       "key": "alt+2",
+// //       "command": "github.cweijan.mysql.focus"
+// //     },
+// //     {
+// //       "key": "alt+g",
+// //       "command": "workbench.view.scm",
+// //       "when": "workbench.scm.active"
+// //     },
+
+// //     /**
+// //       * Toggle Font Size
+// //       **/
+// //       {
+// //           "key": "ctrl+k ctrl+k",
+// //           "command": "toggle",
+// //           "when": "editorTextFocus",
+// //           "args": {
+// //               "id": "fontSize",
+// //               "value": [
+// //                   {
+// //                       "editor.fontSize": 20,
+// //                       "editor.lineHeight": 50,
+// //                   },
+// //                   {
+// //                       "editor.fontSize": 16,
+// //                       "editor.lineHeight": 0,
+// //                   }
+// //               ]
+// //           }
+// //       },
+
+// //       /**
+// //       * Line Manipulation
+// //       **/
+// //       {
+// //           "key": "ctrl+j",
+// //           "command": "editor.action.joinLines",
+// //           "when": "editorTextFocus"
+// //       },
+
+// //       /**
+// //       * Pannels
+// //       **/
+// //       {
+// //           "key": "alt+t",
+// //           "command": "workbench.view.extension.thunder-client"
+// //       },
+
+// //       /**
+// //       * IntelliSense
+// //       **/
+// //       {
+// //           "key": "ctrl+shift+r",
+// //           "command": "workbench.action.showAllSymbols"
+// //       },
+// //       {
+// //           "key": "ctrl+r",
+// //           "command": "workbench.action.gotoSymbol",
+// //           "when": "!accessibilityHelpIsShown && !accessibleViewIsShown"
+// //       },
+// //       {
+// //           "key": "alt+b",
+// //           "command": "editor.action.goToDeclaration",
+// //           "when": "editorTextFocus"
+// //       },
+
+// //       /**
+// //       * Project Switching
+// //       **/
+// //       {
+// //           "key": "ctrl+;",
+// //           "command": "workbench.action.switchWindow",
+// //           "when": "! config.simple-project-switcher.present"
+// //       },
+
+// //       /**
+// //       * Open DevTools
+// //       **/
+// //       {
+// //           "key": "alt+ctrl+i",
+// //           "command": "workbench.action.toggleDevTools"
+// //       },
+
+// //       /**
+// //       * Hide Toaster Notifications
+// //       **/
+// //       {
+// //           "key": "escape",
+// //           "command": "notifications.hideToasts",
+// //           "when": "notificationToastsVisible"
+// //       },
+// //       {
+// //           "key": "alt+l",
+// //           "command": "workbench.action.gotoLine"
+// //     },
+// //     {
+// //         "key": "alt+g",
+// //         "command": "editor.action.addSelectionToNextFindMatch",
+// //         "when": "editorFocus"
+// //     },
+// //     {
+// //         "key": "ctrl+shift+alt+j",
+// //         "command": "editor.action.selectHighlights",
+// //         "when": "editorFocus"
+// //     },
+// //     {
+// //         "key": "alt+oem_period",
+// //         "command": "editor.toggleFold",
+// //         "when": "editorTextFocus && foldingEnabled"
+// //     },
+// //     {
+// //         "key": "ctrl+k ctrl+l",
+// //         "command": "-editor.toggleFold",
+// //         "when": "editorTextFocus && foldingEnabled"
+// //     },
+// //   ]
