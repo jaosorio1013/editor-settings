@@ -45,6 +45,20 @@
       // He mapeado Ctrl+W porque es el estándar para expandir selección en muchos IDEs
       "alt-up": "editor::SelectLargerSyntaxNode",
       "alt-down": "editor::SelectSmallerSyntaxNode",
+
+      // Seleccionar la siguiente ocurrencia (como en VS Code)
+      "ctrl-g": "editor::SelectNext",
+
+      // Ir a una línea específica
+      "ctrl-l": "go_to_line::Toggle",
+
+      // Toggle Case (Alternar entre mayúsculas y minúsculas)
+      "ctrl-shift-u": "editor::ToggleCase",
+
+      // Find Usages (Buscar todas las referencias en el proyecto)
+      "alt-f7": "editor::FindAllReferences",
+      "ctrl-shift-alt-insert": "workspace::NewFile",
+      "ctrl-shift-alt-w": "pane::CloseAllItems",
     },
   },
 ]
