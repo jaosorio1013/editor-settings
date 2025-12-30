@@ -14,6 +14,7 @@
       "alt-Right alt-Right": "workspace::ToggleRightDock",
       "alt-Left alt-Left": "workspace::ToggleLeftDock",
       "alt-k": "git_panel::ToggleFocus",
+      "ctrl-alt-p": "task::Spawn",
       // "alt-f10": "workspace::ToggleBottomBar",
     },
   },
@@ -59,6 +60,12 @@
       "alt-f7": "editor::FindAllReferences",
       "ctrl-shift-alt-insert": "workspace::NewFile",
       "ctrl-shift-alt-w": "pane::CloseAllItems",
+    },
+  },
+  {
+    "context": "Terminal",
+    "bindings": {
+      "alt-f": "workspace::ToggleZoom",
     },
   },
 ]
