@@ -26,7 +26,7 @@
     "default_profile": "write",
     "default_model": {
       "provider": "google",
-      "model": "gemini-3-flash-preview",
+      "model": "gemini-2.5-flash",
     },
     "model_parameters": [],
   },
@@ -75,10 +75,11 @@
   "languages": {
     "PHP": {
       "language_servers": ["intelephense", "!phpactor"],
+      "format_on_save": "on",
       "formatter": {
         "external": {
-          "command": "npx",
-          "arguments": ["prettier", "--stdin-filepath", "{buffer_path}"],
+          "command": "./vendor/bin/pint",
+          "arguments": ["-"],
         },
       },
     },
@@ -89,19 +90,58 @@
         "ty",
         "!basedpyright",
       ],
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "uvx",
+          "arguments": [
+            "ruff",
+            "check",
+            "--select",
+            "I",
+            "--fix",
+            "--stdin-filename",
+            "{buffer_path}",
+            "-",
+          ],
+        },
+      },
     },
     "Django": {
       "language_servers": ["django-language-server"],
       "tab_size": 4,
     },
+
+    "Vue.js": {
+      "formatter": {
+        "external": {
+          "command": "prettier",
+          "arguments": ["--stdin-filepath", "{buffer_path}"],
+        },
+      },
+    },
+    "JavaScript": {
+      "formatter": {
+        "external": {
+          "command": "prettier",
+          "arguments": ["--stdin-filepath", "{buffer_path}"],
+        },
+      },
+    },
+    "TypeScript": {
+      "formatter": {
+        "external": {
+          "command": "prettier",
+          "arguments": ["--stdin-filepath", "{buffer_path}"],
+        },
+      },
+    },
   },
 
   "lsp": {
-    "lsp": {
-      "intelephense": {
-        "initialization_options": {
-          "licenceKey": "003MKOZTXPXLPLK",
-        },
+    "intelephense": {
+      "initialization_options": {
+        "licenceKey": "003MKOZTXPXLPLK",
       },
     },
 
@@ -120,6 +160,18 @@
           "inlayHints": {
             "callArgumentNames": false,
           },
+        },
+      },
+    },
+
+    "tailwindcss-language-server": {
+      "settings": {
+        "tailwindCSS": {
+          "emmetCompletions": true,
+        },
+        "classFunctions": ["cva", "cx"],
+        "experimental": {
+          "classRegex": ["[cls|className]\\s\\:\\=\\s\"([^\"]*)"],
         },
       },
     },
