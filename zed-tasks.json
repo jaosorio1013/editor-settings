@@ -2,7 +2,7 @@
 [
   {
     "label": "Django: Migrate",
-    "command": "uv run python manage.py makemigrations && uv run python manage.py migrate",
+    "command": "uv run python manage.py makemigrations and uv run python manage.py migrate",
     "use_new_terminal": true,
     "allow_concurrent_runs": false,
     "cwd": "$ZED_WORKTREE_ROOT",
@@ -33,17 +33,24 @@
 
   {
     "label": "Django: Init New Project (uv)",
-    "command": "uv init && uv add django django-unfold python-dotenv django-stubs && uv run django-admin startproject config . && touch .env && echo \"SECRET_KEY='$(uv run python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')'\" > .env",
+    "command": "uv init and uv add django django-unfold python-dotenv django-stubs and uv run django-admin startproject config . and touch .env and echo \"SECRET_KEY='$(uv run python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())')'\" > .env",
     "cwd": "$ZED_WORKTREE_ROOT",
     "use_new_terminal": true,
     "reveal_target": "center",
-    // "context": "!project_has_file:manage.py",
+    "context": "!project_has_file:manage.py",
   },
 
   {
-    "label": "Project: Format All Python Files",
-    "command": "uvx ruff format . && uvx ruff check --select I --fix .",
-    // "command": "uvx ruff format . && uvx ruff check --select I --fix . && ./vendor/bin/pint && npx prettier --write .",
+    "label": "Format All Python Files",
+    "command": "uvx ruff format . and uvx ruff check --select I --fix .",
+    // "command": "uvx ruff format . and uvx ruff check --select I --fix . and ./vendor/bin/pint and npx prettier --write .",
+    "use_new_terminal": true,
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal_target": "center",
+  },
+  {
+    "label": "Format All Django Templates",
+    "command": "uvx djlint . --reformat",
     "use_new_terminal": true,
     "cwd": "$ZED_WORKTREE_ROOT",
     "reveal_target": "center",
