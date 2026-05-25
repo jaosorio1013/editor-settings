@@ -1,0 +1,47 @@
+[variables]
+PYTHONUNBUFFERED = '1'
+DEBUG = '0'
+PORT = '8000'
+UV_COMPILE_BYTECODE = '1'
+
+[phases.setup]
+nixPkgs = [
+    'python313',
+    'bun',
+    'uv',
+    'gcc',
+    'postgresql',
+    'glib',
+    'pango',
+    'harfbuzz',
+    'fontconfig',
+    'cairo',
+    'gdk-pixbuf',
+    'shared-mime-info'
+]
+nixLibs = [
+    'glib',
+    'pango',
+    'harfbuzz',
+    'fontconfig',
+    'cairo',
+    'gdk-pixbuf',
+    'postgresql'
+]
+
+[phases.install]
+dependsOn = ['setup']
+cmds = [
+    'bun install',
+    'uv sync --frozen --no-dev --python 3.13'
+]
+
+[phases.build]
+dependsOn = ['install']
+cmds = [
+    'bun run build',
+    'uv run --python 3.13 python manage.py collectstatic --noinput'
+]
+
+[start]
+cmd = 'uv run gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120'

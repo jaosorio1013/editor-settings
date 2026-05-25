@@ -1,0 +1,7 @@
+@import "tailwindcss";
+@import "preline/preline.css";
+
+@theme {
+  --color-primary: #F97316;
+  --color-secondary: #3B82F6;
+}

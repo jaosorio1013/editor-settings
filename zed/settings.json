@@ -1,0 +1,315 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "edit_predictions": {
+    "mode": "eager",
+    "allow_data_collection": "no"
+  },
+  "agent_servers": {
+    "pi-acp": {
+      "type": "registry"
+    },
+    "opencode": {
+      "type": "registry",
+      "favorite_config_option_values": {
+        "model": [
+          "opencode-go/deepseek-v4-flash",
+          "opencode-go/kimi-k2.6"
+        ],
+        "mode": [
+          "gentle-orchestrator"
+        ],
+        "effort": [
+          "medium"
+        ]
+      }
+    }
+  },
+  "language_models": {
+    "opencode": {
+      "show_go_models": true,
+      "show_zen_models": false,
+    },
+  },
+  "cli_default_open_behavior": "existing_window",
+  "collaboration_panel": {
+    "dock": "left",
+  },
+
+  "inlay_hints": {
+    "enabled": true,
+  },
+
+  "git_panel": {
+    "dock": "left",
+    "tree_view": true,
+    "sort_by_path": true,
+  },
+
+  "agent": {
+    "tool_permissions": {
+      "default": "allow",
+    },
+    "dock": "left",
+    "default_profile": "write",
+    "default_model": {
+      "provider": "opencode",
+      "model": "go/kimi-k2.5",
+    },
+    "model_parameters": [],
+  },
+
+  "tab_bar": {
+    "show": false,
+  },
+
+  "ui_font_family": "Dank Mono",
+
+  "buffer_font_family": "Dank Mono",
+
+  "terminal": {
+    "font_family": "IosevkaTerm Nerd Font Mono",
+    "shell": "system",
+  },
+
+  "base_keymap": "JetBrains",
+
+  "ui_font_size": 20,
+
+  "buffer_font_size": 20.0,
+
+  "theme": {
+    "mode": "dark",
+    "light": "One Dark",
+    "dark": "Catppuccin Mocha",
+  },
+
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Zed (Default)",
+    "dark": "Catppuccin Mocha",
+  },
+
+  "title_bar": {
+    "show_onboarding_banner": false,
+    // "show_project_items": false,
+    // "show_branch_name": false,
+    "show_user_menu": false,
+  },
+
+  // "toolbar": {
+  //   "quick_actions": false,
+  // },
+
+  "status_bar": {
+    "experimental.show": false,
+  },
+
+  "centered_layout": {
+    "right_padding": 0.15,
+    "left_padding": 0.15,
+  },
+
+  "outline_panel": {
+    "default_width": 300,
+    "indent_guides": {
+      "show": "never",
+    },
+  },
+
+  "file_finder": {
+    "modal_max_width": "large",
+  },
+
+  "scrollbar": {
+    "show": "never",
+  },
+
+  "gutter": {
+    "min_line_number_digits": 0,
+    "folds": false,
+    "runnables": false,
+  },
+
+  "indent_guides": {
+    "enabled": false,
+  },
+
+  "autosave": {
+    "after_delay": {
+      "milliseconds": 1000,
+    },
+  },
+
+  "project_panel": {
+    "dock": "right",
+    "default_width": 400,
+    // "hide_root": true,
+    "auto_fold_dirs": false,
+    "starts_open": false,
+    // "git_status": false,
+    "sticky_scroll": false,
+    "scrollbar": {
+      "show": "never",
+    },
+    "indent_guides": {
+      "show": "never",
+    },
+  },
+
+  "file_types": {
+    "Django": ["html"],
+    "PHP": ["*.php"],
+    "Blade": ["*.blade.php"],
+  },
+
+  "languages": {
+    "PHP": {
+      "language_servers": ["intelephense", "!phpactor"],
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "./vendor/bin/pint",
+          "arguments": ["-"],
+        },
+      },
+    },
+    "Python": {
+      "language_servers": [
+        // Disable basedpyright and enable Ty, and otherwise
+        // use the default configuration.
+        "ty",
+        "!basedpyright",
+      ],
+      "format_on_save": "on",
+      "formatter": {
+        "external": {
+          "command": "uvx",
+          "arguments": [
+            "ruff",
+            "check",
+            "--select",
+            "I",
+            "--fix",
+            "--stdin-filename",
+            "{buffer_path}",
+            "-",
+          ],
+        },
+      },
+    },
+    "Django": {
+      "language_servers": ["django-language-server"],
+      "tab_size": 4,
+    },
+    "Vue.js": {
+      "formatter": {
+        "external": {
+          "command": "prettier",
+          "arguments": ["--stdin-filepath", "{buffer_path}"],
+        },
+      },
+    },
+    "JavaScript": {
+      "formatter": {
+        "external": {
+          "command": "prettier",
+          "arguments": ["--stdin-filepath", "{buffer_path}"],
+        },
+      },
+    },
+    "TypeScript": {
+      "formatter": {
+        "external": {
+          "command": "prettier",
+          "arguments": ["--stdin-filepath", "{buffer_path}"],
+        },
+      },
+    },
+
+    "CSS": {
+      "language_servers": [
+        "tailwindcss-language-server",
+        "!vscode-css-language-server",
+      ],
+    },
+  },
+
+  "lsp": {
+    "intelephense": {
+      "initialization_options": {
+        "licenceKey": "003MKOZTXPXLPLK",
+      },
+    },
+
+    // "odoo": {
+    //   "settings": {
+    //     "Odoo": {
+    //       "selectedProfile": "my_profile",
+    //     },
+    //   },
+    // },
+
+    "basedpyright": {
+      "initialization_options": {
+        "python": {
+          "analysis": {
+            "djangoSettingsModule": "config.settings",
+          },
+        },
+      },
+
+      "settings": {
+        "basedpyright.analysis": {
+          "diagnosticMode": "workspace",
+          "inlayHints": {
+            "callArgumentNames": false,
+          },
+        },
+      },
+    },
+
+    "tailwindcss-language-server": {
+      "settings": {
+        "tailwindCSS": {
+          "emmetCompletions": true,
+        },
+        "classFunctions": ["cva", "cx"],
+        "experimental": {
+          "classRegex": ["[cls|className]\\s\\:\\=\\s\"([^\"]*)"],
+        },
+      },
+    },
+  },
+
+  //   "theme_overrides": {
+  //     "Aura Dark": {
+  //       "editor.document_highlight.read_background": "#00000000",
+  //       "editor.document_highlight.write_background": "#00000000",
+  //       "border.variant": "#15141C",
+  //       "border": "#15141C",
+  //       "title_bar.background": "#15141C",
+  //       "panel.background": "#15141C",
+  //       "panel.focused_border": "#4E466E",
+  //       "players": [
+  //         {
+  //           "cursor": "#BD9DFF",
+  //         },
+  //       ],
+  //       "syntax": {
+  //         "comment": {
+  //           "font_style": "italic",
+  //         },
+  //         "comment.doc": {
+  //           "font_style": "italic",
+  //         },
+  //       },
+  //     },
+  //   },
+}

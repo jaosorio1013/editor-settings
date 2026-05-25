@@ -1,0 +1,104 @@
+// Zed keymap
+//
+// For information on binding keys, see the Zed
+// documentation: https://zed.dev/docs/key-bindings
+//
+// To see the default key bindings run `zed: open default keymap`
+// from the command palette.
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      "shift shift": "file_finder::Toggle",
+      "alt-p": "file_finder::Toggle",
+      "alt-Right alt-Right": "workspace::ToggleRightDock",
+      "alt-Left alt-Left": "workspace::ToggleLeftDock",
+      "alt-k": "git_panel::ToggleFocus",
+      "ctrl-alt-p": "task::Spawn",
+      // "alt-f10": "workspace::ToggleBottomBar",
+    },
+  },
+  {
+    "context": "Editor && vim_mode == insert",
+    "bindings": {
+      // "j k": "vim::NormalBefore"
+    },
+  },
+  {
+    "context": "Pane",
+    "bindings": {
+      // Cerrar editor activo (Pestaña actual)
+      "alt-w": "pane::CloseActiveItem",
+    },
+  },
+  {
+    "context": "Editor",
+    "bindings": {
+      // Movimiento de líneas (VS Code style)
+      "shift-alt-down": "editor::MoveLineDown",
+      "shift-alt-up": "editor::MoveLineUp",
+
+      // Eliminación y plegado
+      "alt-backspace": "editor::DeleteLine",
+      "ctrl-.": "editor::ToggleFold",
+
+      // Expansión de selección lógica (Tree-sitter)
+      // He mapeado Ctrl+W porque es el estándar para expandir selección en muchos IDEs
+      "alt-up": "editor::SelectLargerSyntaxNode",
+      "alt-down": "editor::SelectSmallerSyntaxNode",
+
+      // Seleccionar la siguiente ocurrencia (como en VS Code)
+      "ctrl-g": "editor::SelectNext",
+
+      // Ir a una línea específica
+      "ctrl-l": "go_to_line::Toggle",
+
+      // Toggle Case (Alternar entre mayúsculas y minúsculas)
+      "ctrl-shift-u": "editor::ToggleCase",
+
+      // Find Usages (Buscar todas las referencias en el proyecto)
+      "alt-f7": "editor::FindAllReferences",
+      "ctrl-shift-alt-insert": "workspace::NewFile",
+      "ctrl-shift-alt-w": "pane::CloseAllItems",
+
+      "ctrl-shift-alt-p": [
+        "action::Sequence",
+        [
+          "editor::Copy",
+          "file_finder::Toggle",
+          ["workspace::SendKeystrokes", "ctrl-v"],
+        ],
+      ],
+    },
+  },
+  // {
+  //   "context": "ProjectSearchBar",
+  //   "bindings": {
+  //     "enter": "project_search::Search",
+  //   },
+  // },
+  {
+    "context": "Terminal",
+    "bindings": {
+      "alt-f": "workspace::ToggleZoom",
+    },
+  },
+  {
+    "context": "Workspace",
+    "bindings": {
+      "ctrl-p": null,
+    },
+  },
+  {
+    "context": "(FileFinder || FileFinder > Picker > Editor)",
+    "bindings": {
+      "ctrl-p": null,
+    },
+  },
+  {
+    "context": "Workspace",
+    "unbind": {
+      "ctrl-k": "git_panel::ToggleFocus",
+    },
+  },
+]
