@@ -1,0 +1,7 @@
+CREATE DATABASE "test360";
+CREATE DATABASE "pulse";
+CREATE DATABASE "universum";
+CREATE DATABASE "lfed";
+CREATE DATABASE "money-manager";
+CREATE DATABASE "elearning";
+CREATE DATABASE "b2bcg";
