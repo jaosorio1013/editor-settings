@@ -163,9 +163,9 @@ alias aqw="php artisan queue:work --timeout=0"
 alias aqw1="php artisan queue:work --timeout=0 --max-jobs=1"
 alias acc="php artisan cache:clear; and php artisan config:clear"
 
-function dbup
+function devs
     set -l prev_dir (pwd)
-    cd /home/o3dev/code/database/postgres
+    cd /home/o3dev/code/o3dev
     docker compose up -d
     cd $prev_dir
 end
