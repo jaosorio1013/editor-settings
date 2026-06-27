@@ -1,13 +1,14 @@
 ---
 name: django
 description: >
-  Guía para proyectos Django modernos. Incluye patrones universales que aplican a cualquier
-  proyecto, patrones condicionales para SaaS multitenant, y auditoría de proyectos en curso.
-  Para nuevos proyectos y proyectos existentes.
+  Guía para proyectos Django modernos. Patrones universales (BaseModel, settings por ambiente,
+  DDT HTMX-safe, EncryptedCharField, rate limiting, django-q2), patrones condicionales
+  (domain layer, snapshot, singleton cache, calculator, conditional constraints),
+  stack frontend (django-cotton + Preline UI + HTMX + Alpine.js), y auditoría de proyectos.
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "2.0"
+  version: "3.1"
 ---
 
 ## When to Use
@@ -75,20 +76,6 @@ app/
 | `views/` | Vistas (si hay muchas) | **DEPENDE** - más de 5 vistas |
 
 ---
-
-## Categorización de patrones
-
-| Categoría | Descripción | Ejemplo |
-|----------|------------|---------|
-| **SIEMPRE** | Patrones universales que aplican a cualquier proyecto Django | BaseModel con soft delete, settings seguros |
-| **DEPENDE** | Opciones que dependen del contexto del proyecto | Multitenant, Evaluation con is_global |
-| **NO VA** | Específicos de este projeto (tests-360 SaaS) | TenantMiddleware, Assignment con roles |
-- Scaffolding de una nueva app dentro de un proyecto Django existente
-- Revisando la estructura de un proyecto Django para alinearlo con buenas prácticas
-- Auditando un proyecto en curso para verificar patrones multitenant
-- Identificando qué falta para completar una implementación SaaS
-- Decidiendo stack frontend (HTMX vs API vs SPA) para un proyecto Django
-- Configurando testing, linting, o tooling de un proyecto Django
 
 ## Categorización de patrones
 
@@ -212,7 +199,145 @@ DB_NAME=db.sqlite3
 # DB_PORT=5432
 ```
 
-### 3. Decimal siempre con strings
+### 3. Settings por ambiente (base → local → production)
+
+Proyectos reales necesitan configuraciones distintas para desarrollo local, staging, y producción. Un solo `settings.py` con `if DEBUG` es frágil.
+
+**Estructura recomendada:**
+
+```
+config/
+├── settings/
+│   ├── __init__.py   # Auto-detecta ambiente y carga el módulo correcto
+│   ├── base.py        # Config común a todos los ambientes
+│   ├── local.py       # Desarrollo: DEBUG=True, SQLite, console email
+│   └── production.py  # Producción: DEBUG=False, PostgreSQL, HSTS, Sentry
+├── urls.py
+└── wsgi.py
+```
+
+```python
+# config/settings/__init__.py
+import os
+import importlib
+
+ENVIRONMENT = os.environ.get("DJANGO_ENVIRONMENT", "local")
+_module = importlib.import_module(f"config.settings.{ENVIRONMENT}")
+globals().update({k: v for k, v in _module.__dict__.items() if not k.startswith("_")})
+```
+
+```python
+# config/settings/base.py
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+load_dotenv(BASE_DIR / ".env")
+
+SECRET_KEY = os.environ["SECRET_KEY"]  # Explota si no está — sin fallback
+
+# Apps, middleware, templates, database base, i18n — común a todos los ambientes
+INSTALLED_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    # ...
+    "apps.core",
+]
+```
+
+```python
+# config/settings/local.py
+from config.settings.base import *  # noqa: F403
+
+DEBUG = True
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Django Debug Toolbar (solo en desarrollo)
+INSTALLED_APPS += ["debug_toolbar"]  # noqa: F405
+MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE  # noqa: F405
+INTERNAL_IPS = ["127.0.0.1"]
+```
+
+```python
+# config/settings/production.py
+from config.settings.base import *  # noqa: F403
+
+DEBUG = False
+ALLOWED_HOSTS = os.environ["ALLOWED_HOSTS"].split(",")
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ["DB_NAME"],
+        "USER": os.environ["DB_USER"],
+        "PASSWORD": os.environ["DB_PASSWORD"],
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
+    }
+}
+
+# Security hardening
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+```
+
+**Regla**: `manage.py` y `wsgi.py` apuntan a `config.settings` (no a `config.settings.local`). El `__init__.py` decide cuál cargar según `DJANGO_ENVIRONMENT`.
+
+### 4. Django Debug Toolbar (HTMX-safe)
+
+DDT es esencial para detectar N+1 queries, tiempo de templates, y cache hits durante desarrollo. Pero **rompe HTMX**: la toolbar se inyecta en responses parciales y corrompe fragments que esperan `innerHTML` puro.
+
+Configuración correcta — solo en `local.py`, y **nunca en respuestas HTMX ni API**:
+
+```python
+# config/settings/local.py (continuación)
+def show_toolbar(request):
+    """No inyectar toolbar en partials HTMX ni endpoints API."""
+    from debug_toolbar.middleware import show_toolbar as default_show
+    if request.headers.get("HX-Request"):
+        return False
+    if request.path.startswith("/api/"):
+        return False
+    return default_show(request)
+
+DEBUG_TOOLBAR_CONFIG = {
+    "SHOW_TOOLBAR_CALLBACK": show_toolbar,
+}
+
+DEBUG_TOOLBAR_PANELS = [
+    "debug_toolbar.panels.history.HistoryPanel",
+    "debug_toolbar.panels.versions.VersionsPanel",
+    "debug_toolbar.panels.timer.TimerPanel",
+    "debug_toolbar.panels.settings.SettingsPanel",
+    "debug_toolbar.panels.headers.HeadersPanel",
+    "debug_toolbar.panels.request.RequestPanel",
+    "debug_toolbar.panels.sql.SQLPanel",
+    "debug_toolbar.panels.profiling.ProfilingPanel",
+]
+```
+
+```bash
+# Instalación
+pip install django-debug-toolbar
+```
+
+**Gotcha**: si usás django-ninja o DRF, los endpoints API también reciben HTML inyectado. El filtro `request.path.startswith("/api/")` lo previene.
+
+### 5. Decimal siempre con strings
 
 ```python
 from decimal import Decimal
@@ -223,7 +348,7 @@ Decimal("0.00")
 Decimal(0.1)  # float pollution
 ```
 
-### 4. app/ inicial con BaseModel
+### 6. app/ inicial con BaseModel
 
 ```python
 # apps/core/apps.py
@@ -235,7 +360,7 @@ class CoreConfig(AppConfig):
     verbose_name = "Core"
 ```
 
-### 5. Estructura moderna con modelos en directorio
+### 7. Estructura moderna con modelos en directorio
 
 Para apps con más de 3 modelos:
 
@@ -256,7 +381,7 @@ project/
 │       └── views.py
 ```
 
-### 6. Sin side effects en save()
+### 8. Sin side effects en save()
 
 Los modelos NO crean otros modelos al guardarse. Las automatizaciones van a signals o servicios.
 
@@ -275,7 +400,134 @@ def create_deal_for_client(sender, instance, created, **kwargs):
         Deal.objects.create(person=instance)
 ```
 
-### 7. Decisiones de stack según contexto
+### 9. EncryptedCharField para secretos en base de datos
+
+API keys, tokens OAuth, private keys de pasarelas de pago — nunca en texto plano en la DB. Si alguien obtiene un dump de la base de datos, los secretos deben estar encriptados.
+
+Usá un campo Django custom con **Fernet** (AES-128-CBC simétrico). La clave de encriptación vive en variables de entorno, nunca en la DB.
+
+```python
+# apps/core/models/fields.py
+from cryptography.fernet import Fernet
+from django.conf import settings
+from django.db import models
+import os
+
+class EncryptedTextField(models.TextField):
+    """Field that encrypts data at rest using Fernet symmetric encryption."""
+
+    description = "Encrypted text field using Fernet (AES-128-CBC)"
+
+    def __init__(self, *args, **kwargs):
+        kwargs["editable"] = kwargs.get("editable", True)
+        super().__init__(*args, **kwargs)
+
+    def get_prep_value(self, value):
+        if value is None:
+            return None
+        fernet = Fernet(settings.FERNET_ENCRYPTION_KEY.encode())
+        return fernet.encrypt(value.encode()).decode()
+
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return None
+        fernet = Fernet(settings.FERNET_ENCRYPTION_KEY.encode())
+        return fernet.decrypt(value.encode()).decode()
+
+    def to_python(self, value):
+        if value is None or isinstance(value, str):
+            return value
+        return self.from_db_value(value, None, None)
+```
+
+```python
+# config/settings/base.py — clave de encriptación
+FERNET_ENCRYPTION_KEY = os.environ.get("FERNET_ENCRYPTION_KEY")
+if not FERNET_ENCRYPTION_KEY and DEBUG:
+    # Auto-generar en desarrollo (NO en producción)
+    FERNET_ENCRYPTION_KEY = Fernet.generate_key().decode()
+    print(f"WARNING: auto-generated FERNET_ENCRYPTION_KEY. Set it in .env for persistence.")
+```
+
+```python
+# apps/payments/models/gateway_config.py
+from apps.core.models.base import BaseModel
+from apps.core.models.fields import EncryptedTextField
+
+class GatewayConfig(BaseModel):
+    gateway = models.CharField(max_length=50)
+    api_key = EncryptedTextField()          # ← Encriptado en DB
+    webhook_secret = EncryptedTextField()   # ← Encriptado en DB
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["tenant", "gateway"], name="uq_tenant_gateway")
+        ]
+```
+
+**Testing**: verificá que el valor en DB no sea texto plano:
+
+```python
+def test_api_key_encrypted_at_rest(db):
+    config = GatewayConfig.objects.create(gateway="wompi", api_key="sk_test_abc123")
+    raw = GatewayConfig.all_objects.raw(
+        "SELECT api_key FROM payments_gatewayconfig WHERE id = %s", [config.id]
+    )[0]
+    assert "sk_test_abc123" not in raw.api_key  # No es texto plano
+    assert config.api_key == "sk_test_abc123"    # Se desencripta al leer del ORM
+```
+
+**⚠️ Cuidado con el admin**: Django Admin mostrará el valor desencriptado en formularios. Para campos encriptados, usá `exclude` o un widget readonly que oculte el valor real:
+
+```python
+# apps/payments/admin/gateway_admin.py
+class GatewayConfigAdmin(admin.ModelAdmin):
+    exclude = ("api_key", "webhook_secret")  # No exponer en admin forms
+```
+
+### 10. Rate limiting con cache atómico
+
+APIs públicas y webhooks necesitan rate limiting para evitar abuso. Usá `cache.incr()` que es atómico — sin race conditions.
+
+```python
+# apps/core/middleware.py
+from django.core.cache import cache
+from django.http import HttpResponse
+
+class RateLimitMiddleware:
+    """Rate limit requests per path and IP using atomic cache.incr()."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Rutas con límites específicos
+        limits = {
+            "/api/webhooks/": (60, 60),      # 60 requests por minuto
+            "/api/ghl/query": (100, 60),     # 100 requests por minuto
+        }
+
+        for path_prefix, (max_requests, window_seconds) in limits.items():
+            if request.path.startswith(path_prefix):
+                client_ip = request.META.get("REMOTE_ADDR", "0.0.0.0")
+                key = f"ratelimit:{path_prefix}:{client_ip}"
+
+                count = cache.incr(key)
+                if count == 1:
+                    cache.expire(key, window_seconds)
+
+                if count > max_requests:
+                    return HttpResponse(
+                        "Too many requests", status=429,
+                        headers={"Retry-After": str(window_seconds)}
+                    )
+
+        return self.get_response(request)
+```
+
+**Por qué `cache.incr()` y no `cache.get()` + `cache.set()`**: `incr()` es atómico en Redis y LocMemCache. Con get+set, dos requests concurrentes pueden leer el mismo valor y ambos pasar el límite.
+
+### 11. Decisiones de stack según contexto
 
 | Si necesitas... | Usá (default) | Alternativa cuando escale |
 |----------------|-----|---------|
@@ -285,9 +537,12 @@ def create_deal_for_client(sender, instance, created, **kwargs):
 | Interactividad ligera (dropdowns, modals, tabs) | Alpine.js | React por 3 componentes |
 | Actualizaciones parciales | HTMX | Fetch API manual |
 | Pantalla con estado de cliente complejo (drag & drop, wizards, canvas) | **Inertia + PrimeVue** | React, Vue SPA separada |
+| Background tasks (emails, reports, webhooks) | **django-q2** (ORM broker) | Celery + Redis (solo si necesitás +500 tasks/min) |
 **Regla de oro:** Empezá server-side. "Graduá" a Inertia + PrimeVue **solo cuando una pantalla específica demuestre** que no puede resolverse con HTMX + Alpine.js.
 
 **Regla de componentes:** Preferí `django-cotton` sobre `{% include %}` siempre que necesités reusar markup con props o slots. Preline UI te da los estilos base, cotton te da la encapsulación en templates.
+
+**Regla de background tasks:** Empezá con `django-q2` y ORM broker. No agregues Celery + Redis **sin medición real de throughput**. `django-q2` usa tu DB existente como broker por defecto — cero infraestructura extra. Solo migrá a Celery cuando tengas >500 tasks por minuto o necesités encolamiento por prioridad.
 
 ---
 
@@ -618,7 +873,7 @@ Preline requiere inicialización de componentes JS. En tu `base.html`:
 
 ## Patrones que DEPENDEN del contexto
 
-### 8. Multitenant con Organization
+### 1. Multitenant con Organization
 
 Para **SaaS multi-tenant** (muchas organizaciones):
 
@@ -651,7 +906,7 @@ Para **un solo tenant** (una sola empresa):
 - User tiene ForeignKey a Organization null=True
 - Puedes simplificar a un solo tenant
 
-### 9. User con email login
+### 2. User con email login
 
 Para **auth con email**:
 
@@ -686,7 +941,7 @@ Para **username clásico** (menos común):
 - Simplemente usa AbstractUser por defecto
 - No necesitas cambiar USERNAME_FIELD
 
-### 10. TenantMiddleware para filtering automático
+### 3. TenantMiddleware para filtering automático
 
 Para **SaaS multitenant con filtering automático**:
 
@@ -757,7 +1012,7 @@ Para **un solo tenant**:
 - NO necesitas filtrado automático por organización
 - Queries son más simples
 
-### 11. Catálogo unificado con is_global
+### 4. Catálogo unificado con is_global
 
 Para **muchas organizaciones con templates compartidos**:
 
@@ -790,17 +1045,391 @@ Para **un solo tenant**:
 - NO necesitas parent para custom versions
 - Simpler: solo una evaluación por tipo
 
+### 5. Domain layer pura (dataclasses frozen, calculadoras sin Django)
+
+Para lógica de negocio compleja (cálculos financieros, pricing, scoring), separá la lógica pura de los modelos Django. Usá **dataclasses frozen** — inmutables, sin side effects, 100% testeables sin DB.
+
+```python
+# apps/quoting/domain/pricing.py
+from dataclasses import dataclass, field
+from decimal import Decimal
+
+@dataclass(frozen=True)
+class PriceBreakdown:
+    """Immutable price calculation result."""
+    subtotal: Decimal
+    iva: Decimal
+    total: Decimal
+    iva_rate: Decimal = Decimal("0.19")
+
+    @property
+    def iva_amount(self) -> Decimal:
+        return self.subtotal * self.iva_rate
+
+@dataclass(frozen=True)
+class QuoteFinancials:
+    items_total: Decimal
+    labor_total: Decimal
+    materials_total: Decimal
+    markup_percent: Decimal = Decimal("0")
+    discount_percent: Decimal = Decimal("0")
+
+    @property
+    def subtotal(self) -> Decimal:
+        return self.items_total + self.labor_total + self.materials_total
+
+    @property
+    def markup_amount(self) -> Decimal:
+        return self.subtotal * (self.markup_percent / Decimal("100"))
+
+    @property
+    def grand_total(self) -> Decimal:
+        marked_up = self.subtotal + self.markup_amount
+        discount = marked_up * (self.discount_percent / Decimal("100"))
+        return marked_up - discount
+```
+
+```python
+# apps/quoting/domain/pricing.py (continuación)
+@dataclass(frozen=True)
+class ExecutionQuoteItemCalculator:
+    """Pure calculator for a single execution quote item. Zero Django imports."""
+
+    unit_cost: Decimal
+    quantity: Decimal
+    margin_percent: Decimal = Decimal("30")
+    iva_rate: Decimal = Decimal("0.19")
+
+    def calculate(self) -> PriceBreakdown:
+        subtotal = self.unit_cost * self.quantity
+        iva = subtotal * self.iva_rate
+        total = subtotal * (1 + self.margin_percent / Decimal("100")) + iva
+        return PriceBreakdown(subtotal=subtotal, iva=iva, total=total, iva_rate=self.iva_rate)
+```
+
+**Testing sin DB**:
+
+```python
+def test_calculator_pure_logic():
+    calc = ExecutionQuoteItemCalculator(
+        unit_cost=Decimal("100"), quantity=Decimal("5"), margin_percent=Decimal("30")
+    )
+    result = calc.calculate()
+    assert result.subtotal == Decimal("500")
+    assert result.iva == Decimal("95")
+    assert result.total > Decimal("500")  # Con margen
+```
+
+**Regla**: Si un archivo en `domain/` importa `from django.db import models` o `from apps.*.models import *`, está mal ubicado. El domain layer **nunca** toca el ORM.
+
+### 6. Snapshot pattern (congelar datos al cambiar de estado)
+
+Cuando un registro cambia de estado (cotización → aprobada, orden → confirmada), ciertos valores de configuración deben congelarse para siempre. Si la tasa de IVA cambia mañana, las cotizaciones de hoy no deberían verse afectadas.
+
+```python
+# apps/quoting/models/base_quote.py
+class BaseQuote(BaseModel):
+    STATUS_DRAFT = "draft"
+    STATUS_SENT = "sent"
+    STATUS_APPROVED = "approved"
+
+    status = models.CharField(max_length=20, default=STATUS_DRAFT)
+
+    # Valores "vivos" — se actualizan con GlobalConfiguration
+    iva_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0.19"))
+
+    # Snapshots — se congelan al aprobar/enviar
+    iva_rate_snapshot = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    markup_snapshot = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+    def approve(self):
+        """Freeze current rates as snapshots."""
+        self.status = self.STATUS_APPROVED
+        self.iva_rate_snapshot = self.iva_rate
+        self.markup_snapshot = GlobalConfiguration.get_solo().default_markup
+        self.approved_at = timezone.now()
+        self.save(update_fields=["status", "iva_rate_snapshot", "markup_snapshot", "approved_at"])
+```
+
+**Cuándo usarlo**: cotizaciones, órdenes de compra, facturas, contratos — cualquier documento financiero donde los parámetros del momento de emisión deben ser inmutables.
+
+### 7. Singleton model con cache
+
+Configuración global que rara vez cambia pero se lee en cada request. Usá un modelo singleton + cache para evitar pegarle a la DB constantemente.
+
+```python
+# apps/core/models/global_configuration.py
+from django.core.cache import cache
+from django.db import models
+from apps.core.models.base import BaseModel
+
+class GlobalConfiguration(BaseModel):
+    """Singleton — solo existe UNA fila en esta tabla."""
+    default_markup = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("30"))
+    default_iva = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0.19"))
+    company_name = models.CharField(max_length=255)
+    email_notifications_enabled = models.BooleanField(default=True)
+
+    CACHE_KEY = "global_configuration"
+    CACHE_TTL = 3600  # 1 hora
+
+    def save(self, *args, **kwargs):
+        self.pk = 1  # Forzar singleton
+        super().save(*args, **kwargs)
+        cache.set(self.CACHE_KEY, self, self.CACHE_TTL)
+
+    @classmethod
+    def get_solo(cls):
+        """Obtener la única instancia, desde cache si está disponible."""
+        cached = cache.get(cls.CACHE_KEY)
+        if cached is not None:
+            return cached
+        obj, _ = cls.objects.get_or_create(pk=1)
+        cache.set(cls.CACHE_KEY, obj, cls.CACHE_TTL)
+        return obj
+```
+
+**Invalida el cache cuando cambia** — el `save()` sobreescrito lo hace automáticamente. Para cambios vía `update()`, usá `cache.delete(GlobalConfiguration.CACHE_KEY)`.
+
+### 8. Calculator pattern (calculadoras stateless por entidad)
+
+Para lógica de pricing/scoring con múltiples estrategias, usá calculadoras stateless — una clase por estrategia, sin estado interno. El modelo de configuración decide cuál instanciar.
+
+```python
+# apps/evaluations_360/services/calculators.py
+from dataclasses import dataclass
+from decimal import Decimal
+from abc import ABC, abstractmethod
+
+@dataclass(frozen=True)
+class ScoreResult:
+    raw: Decimal
+    normalized: Decimal  # 0-100
+    weighted: Decimal    # Con peso del rol aplicado
+
+class ScoreCalculator(ABC):
+    @abstractmethod
+    def calculate(self, scores: list[Decimal], weight: Decimal = Decimal("1")) -> ScoreResult: ...
+
+class SimpleAverageCalculator(ScoreCalculator):
+    def calculate(self, scores, weight=Decimal("1")):
+        avg = sum(scores, Decimal("0")) / len(scores)
+        return ScoreResult(raw=avg, normalized=avg, weighted=avg * weight)
+
+class WeightedAverageCalculator(ScoreCalculator):
+    def __init__(self, weights: list[Decimal]):
+        self.weights = weights
+
+    def calculate(self, scores, weight=Decimal("1")):
+        weighted_sum = sum(s * w for s, w in zip(scores, self.weights), Decimal("0"))
+        total_weight = sum(self.weights, Decimal("0"))
+        avg = weighted_sum / total_weight if total_weight else Decimal("0")
+        return ScoreResult(raw=avg, normalized=avg, weighted=avg * weight)
+```
+
+**Dispatcher** — el modelo de configuración decide qué calculadora usar:
+
+```python
+# apps/evaluations_360/services/scoring_engine.py
+class ConfigurableScoringEngine:
+    CALCULATORS = {
+        "simple_avg": SimpleAverageCalculator,
+        "weighted_avg": WeightedAverageCalculator,
+    }
+
+    def __init__(self, scoring_config):
+        self.config = scoring_config
+
+    def get_calculator(self) -> ScoreCalculator:
+        calc_class = self.CALCULATORS[self.config.method]
+        if self.config.method == "weighted_avg":
+            role_weights = [rw.weight for rw in self.config.role_weights.all()]
+            return calc_class(role_weights)
+        return calc_class()
+```
+
+### 9. Conditional UniqueConstraint
+
+Constraints que varían según el valor de otro campo. Útil para modelos multi-tenant donde algunos registros son globales y otros pertenecen a una organización.
+
+```python
+# apps/catalog/models/tag.py
+from django.db import models
+from django.db.models import Q
+
+class Tag(BaseModel):
+    name = models.CharField(max_length=100)
+    organization = models.ForeignKey("accounts.Organization", null=True, blank=True,
+                                      on_delete=models.CASCADE)
+    is_global = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            # Tags globales: nombre único (sin organización)
+            models.UniqueConstraint(
+                fields=["name"],
+                condition=Q(is_global=True),
+                name="uq_tag_global_name"
+            ),
+            # Tags por organización: nombre único dentro de la org
+            models.UniqueConstraint(
+                fields=["name", "organization"],
+                condition=Q(is_global=False),
+                name="uq_tag_org_name"
+            ),
+        ]
+```
+
+**Cuándo usarlo**: cualquier modelo donde la unicidad depende del scope (global vs tenant, activo vs inactivo, draft vs published).
+
+### 10. django-q2 con ORM broker (configuración completa)
+
+`django-q2` es una cola de tareas distribuida multiproceso para Django, más madura que `django.tasks` y más simple que Celery. Soporta múltiples brokers (ORM, Redis, IronMQ, SQS), tareas Schedule con cron, chaining, y admin propio.
+
+```python
+# config/settings/base.py
+Q_CLUSTER = {
+    "name": "finance-manager",
+    "workers": 4,
+    "recycle": 500,
+    "timeout": 60,
+    "retry": 120,
+    "max_attempts": 3,
+    "compress": True,
+    "save_limit": 250,
+    "queue_limit": 500,
+    "cpu_affinity": 1,
+    "label": "Django Q2",
+    "orm": "default",  # Usa la DB existente como broker — cero infra extra
+}
+```
+
+```bash
+# Migración necesaria (crea las tablas django_q_*)
+pip install django-q2
+python manage.py migrate
+```
+
+```python
+# apps/notifications/tasks.py
+from django_q.tasks import async_task
+
+def send_welcome_email(user_id: int):
+    from apps.accounts.models import User
+    user = User.objects.get(id=user_id)
+    user.email_user("Bienvenido", "Gracias por registrarte.")
+
+def process_payment_webhook(payment_intent_id: int):
+    from apps.payments.services.orchestrator import PaymentOrchestrator
+    PaymentOrchestrator.process(payment_intent_id)
+```
+
+```python
+# Uso en views — fire-and-forget, no bloquea
+from django_q.tasks import async_task
+
+def register_view(request):
+    user = User.objects.create(...)
+    async_task("apps.notifications.tasks.send_welcome_email", user_id=user.id)
+    return redirect("dashboard")
+```
+
+**Tareas Schedule (cron-like):**
+
+```python
+# apps/tasks/schedules.py — se llama desde apps.py o migration
+from django_q.models import Schedule
+
+def setup_schedules():
+    Schedule.objects.get_or_create(
+        name="process-scheduled-transactions",
+        defaults={
+            "func": "apps.tasks.scheduled_transactions.process",
+            "schedule_type": Schedule.CRON,
+            "cron": "0 * * * *",  # Cada hora
+            "repeats": -1,  # Indefinido
+        },
+    )
+    Schedule.objects.get_or_create(
+        name="update-exchange-rates",
+        defaults={
+            "func": "apps.tasks.exchange_rates.update",
+            "schedule_type": Schedule.CRON,
+            "cron": "0 6 * * *",  # Diario a las 6 AM
+            "repeats": -1,
+        },
+    )
+```
+
+**Worker** (proceso separado):
+
+```bash
+# Desarrollo — polling cada segundo
+python manage.py qcluster
+
+# Producción — con workers específicos
+python manage.py qcluster --timeout 300
+```
+
+**Brokers disponibles**:
+
+| Broker | Infra | Para |
+|--------|-------|------|
+| `"orm": "default"` | Nada | MVP, desarrollo, proyectos medianos |
+| `"redis": {"host": ..., "port": 6379}` | Redis | Producción con alto throughput |
+| `"iron_mq"` o `"sqs"` | Externo | Cloud-native, escalado horizontal |
+
+**Retries y manejo de errores**:
+
+```python
+# Config global en Q_CLUSTER
+Q_CLUSTER = {
+    "max_attempts": 3,     # Reintentos automáticos
+    "retry": 120,          # Tiempo antes de marcar como fallido (segundos)
+    "timeout": 60,         # Timeout por tarea (segundos)
+}
+
+# Por tarea individual vía hook
+def on_failure(task):
+    import structlog
+    log = structlog.get_logger()
+    log.error("task_failed", task_id=task.id, func=task.func, result=task.result)
+    # Crear Alert para el usuario si es crítico
+
+async_task("apps.tasks.exchange_rates.update", hook=on_failure, task_name="update-rates")
+```
+
+**Migración desde Celery**:
+
+```bash
+# Quitás todo esto:
+# - celery.py
+# - celerybeat schedule
+# - Redis config (si no lo necesitás para otra cosa)
+# - docker-compose celery + celery-beat services
+
+# Agregás solo:
+pip install django-q2
+python manage.py migrate  # Crea django_q_schedule, django_q_task
+```
+
+**Ventaja clave sobre Celery**: API más simple, schedules nativos sin beat, admin integrado, y ORM broker que no requiere Redis para empezar. Solo migrá a Redis cuando el throughput lo justifique.
+
 ---
 
 ## Patrones que NO VAN (específicos de tests-360)
 
 Estos patrones son específicos del proyecto tests-360 (evaluaciones 360 + encuestas de pulso SaaS). No aplicarlos en otros proyectos.
 
-### 12. TenantMiddleware + TenantMixin completos
+### 1. TenantMiddleware + TenantMixin completos
 
 Solo para **SaaS multitenant con evaluación de organizaciones**.
 
-### 13. Assignment con EvaluationRole
+### 2. Assignment con EvaluationRole
 
 Solo para **evaluaciones 360 con roles definidos**:
 
@@ -824,7 +1453,7 @@ class Assignment(BaseModel):
     code = models.UUIDField(default=uuid.uuid4, unique=True)
 ```
 
-### 14. Question con show_on_* booleans
+### 3. Question con show_on_* booleans
 
 Solo para **evaluaciones donde cada pregunta tiene visibilidad por rol**:
 
@@ -840,7 +1469,7 @@ class Question(BaseModel):
     show_on_customers = models.BooleanField(default=False)
 ```
 
-### 15. Survey + SurveyResponse para pulse
+### 4. Survey + SurveyResponse para pulse
 
 Solo para **encuestas de pulso con anonymeidad**:
 
@@ -859,7 +1488,7 @@ class SurveyResponse(BaseModel):
     value_normalized = models.IntegerField()  # For inverted items
 ```
 
-### 16. Segment con factor + jerarquía
+### 5. Segment con factor + jerarquía
 
 Solo para **evaluaciones organizadas por categorías**:
 
@@ -874,7 +1503,7 @@ class Segment(BaseModel):
     parent = models.ForeignKey("self", null=True, blank=True)  # Jerarquía
 ```
 
-### 17. Management command seed con datos demo
+### 6. Management command seed con datos demo
 
 Solo para **proyectos con datos de prueba necesarios**:
 
@@ -935,6 +1564,30 @@ python manage.py migrate
 # Build CSS (Tailwind + Preline UI)
 npx @tailwindcss/cli -i static/css/main.css -o static/css/dist.css --watch  # watch mode
 npx @tailwindcss/cli -i static/css/main.css -o static/css/dist.css          # build once
+
+# Verificar settings por ambiente
+ls config/settings/__init__.py config/settings/base.py config/settings/local.py config/settings/production.py 2>/dev/null || echo "Single settings.py"
+
+# Verificar Django Debug Toolbar
+grep "debug_toolbar" config/settings/local.py 2>/dev/null && echo "DDT configured" || echo "DDT not configured"
+
+# Verificar EncryptedCharField
+grep -r "EncryptedTextField\|EncryptedCharField" apps/ 2>/dev/null && echo "EncryptedField found" || echo "No encrypted fields"
+
+# Verificar rate limiting middleware
+grep -r "RateLimitMiddleware\|cache.incr" apps/ 2>/dev/null && echo "Rate limiting found" || echo "No rate limiting"
+
+# Verificar django-q2
+grep -r "Q_CLUSTER\|django-q2\|django_q" config/settings/ apps/ 2>/dev/null && echo "django-q2 configured" || echo "No django-q2 config"
+
+# Verificar domain layer
+ls apps/*/domain/*.py 2>/dev/null && echo "Domain layer found" || echo "No domain/ directory"
+
+# Verificar pre-commit
+ls .pre-commit-config.yaml 2>/dev/null && echo "pre-commit configured" || echo "No pre-commit hooks"
+
+# Verificar conditional unique constraints
+grep -r "UniqueConstraint.*condition" apps/ 2>/dev/null && echo "Conditional constraints found" || echo "No conditional constraints"
 ```
 
 ---
@@ -959,6 +1612,11 @@ npx @tailwindcss/cli -i static/css/main.css -o static/css/dist.css          # bu
 | Event listener `htmx:afterSwap` para reinicializar Preline |
 | `builtins` configurado en `TEMPLATES` para cotton (opcional pero recomendado) |
 | Componentes cotton organizados por dominio con prefijo `_` para internos |
+| Settings por ambiente (`config/settings/{base,local,production}.py`) |
+| `pre-commit` configurado (ruff + mypy + djlint) |
+| Django Debug Toolbar instalado y configurado con `SHOW_TOOLBAR_CALLBACK` para HTMX |
+| `django-q2` configurado (ORM broker para dev/prod, Redis opcional para alto throughput) |
+| `FERNET_ENCRYPTION_KEY` set en `.env` (auto-generada en dev) |
 
 ---
 
@@ -974,6 +1632,9 @@ npx @tailwindcss/cli -i static/css/main.css -o static/css/dist.css          # bu
 | MIDDLEWARE incluye TenantMiddleware |
 | is_global booleano en modelos tenant |
 | Organization.settings como JSONField |
+| Conditional UniqueConstraints para modelos con `is_global` vs por tenant |
+| `EncryptedCharField` para secretos (API keys, tokens) en modelos de gateway |
+| Rate limiting en endpoints públicos (webhooks, API) |
 
 ---
 
@@ -1002,6 +1663,12 @@ npx @tailwindcss/cli -i static/css/main.css -o static/css/dist.css          # bu
 | Componentes base de cotton creados (button, card, alert, input, modal) |
 | Componentes organizados por dominio con prefijo `_` para internos |
 | Templates migrados de `{% include %}` a cotton donde aplica |
+| `django-q2` reemplazando Celery si no hay necesidad de +500 tasks/min |
+| `EncryptedCharField` en modelos con secretos (API keys, webhook secrets) |
+| Rate limiting en endpoints públicos |
+| Domain layer separado (`domain/` sin imports Django) para lógica de negocio compleja |
+| Calculator pattern si hay múltiples estrategias de cálculo |
+| Settings por ambiente (no `if DEBUG` en un solo archivo) |
 
 ---
 
